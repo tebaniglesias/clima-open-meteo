@@ -26,7 +26,7 @@
 
         <p id="mensaje" class="mensaje"></p>
 
-        <section id="clima-actual" class="tarjeta">
+        <section id="clima-actual" class="tarjeta" hidden>
             <h2 id="ciudad">--</h2>
             <p id="pais" class="pais">--</p>
 
@@ -52,20 +52,16 @@
             </div>
         </section>
 
-        <section class="tarjeta">
+        <section id="tarjeta-pronostico" class="tarjeta" hidden>
             <h3>Próximos días</h3>
-            <ul id="pronostico" class="pronostico">
-                <li class="dia">
-                    <span class="dia-nombre">--</span>
-                    <span class="dia-icono">☁️</span>
-                    <span class="dia-temps">--° / --°</span>
-                </li>
-            </ul>
+            <ul id="pronostico" class="pronostico"></ul>
         </section>
 
         <footer>
             <p>Datos provistos por <a href="https://open-meteo.com" target="_blank">Open-Meteo</a></p>
         </footer>
     </main>
+
+    <script src="app.js"></script>
 </body>
 </html>
