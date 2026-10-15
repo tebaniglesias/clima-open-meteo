@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clima</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main class="contenedor">
+        <header>
+            <h1>Clima</h1>
+            <p class="subtitulo">Consultá el clima actual y el pronóstico de cualquier ciudad</p>
+        </header>
+
+        <form id="form-busqueda" class="busqueda">
+            <input
+                type="text"
+                id="input-ciudad"
+                placeholder="Ej: Buenos Aires"
+                autocomplete="off"
+                required
+            >
+            <button type="submit">Buscar</button>
+        </form>
+
+        <p id="mensaje" class="mensaje"></p>
+
+        <section id="clima-actual" class="tarjeta">
+            <h2 id="ciudad">--</h2>
+            <p id="pais" class="pais">--</p>
+
+            <div class="principal">
+                <span id="icono" class="icono">☀️</span>
+                <span id="temperatura" class="temperatura">--°</span>
+            </div>
+            <p id="descripcion" class="descripcion">--</p>
+
+            <div class="detalles">
+                <div class="detalle">
+                    <span class="etiqueta">Sensación</span>
+                    <span id="sensacion" class="valor">--°</span>
+                </div>
+                <div class="detalle">
+                    <span class="etiqueta">Humedad</span>
+                    <span id="humedad" class="valor">--%</span>
+                </div>
+                <div class="detalle">
+                    <span class="etiqueta">Viento</span>
+                    <span id="viento" class="valor">-- km/h</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="tarjeta">
+            <h3>Próximos días</h3>
+            <ul id="pronostico" class="pronostico">
+                <li class="dia">
+                    <span class="dia-nombre">--</span>
+                    <span class="dia-icono">☁️</span>
+                    <span class="dia-temps">--° / --°</span>
+                </li>
+            </ul>
+        </section>
+
+        <footer>
+            <p>Datos provistos por <a href="https://open-meteo.com" target="_blank">Open-Meteo</a></p>
+        </footer>
+    </main>
+</body>
+</html>
