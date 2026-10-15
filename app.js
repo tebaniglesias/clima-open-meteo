@@ -39,11 +39,14 @@ const formulario = document.getElementById("form-busqueda");
 const inputCiudad = document.getElementById("input-ciudad");
 const mensaje = document.getElementById("mensaje");
 const tarjetaActual = document.getElementById("clima-actual");
+const tarjetaRopa = document.getElementById("tarjeta-ropa");
+const ropaEstado = document.getElementById("ropa-estado");
+const ropaMotivo = document.getElementById("ropa-motivo");
 const tarjetaPronostico = document.getElementById("tarjeta-pronostico");
 const listaPronostico = document.getElementById("pronostico");
 
 formulario.addEventListener("submit", async (evento) => {
-    evento.preventDefault(); // evita que la página se recargue
+    evento.preventDefault();
 
     const nombreCiudad = inputCiudad.value.trim();
     if (nombreCiudad === "") return;
@@ -60,6 +63,7 @@ formulario.addEventListener("submit", async (evento) => {
 
         const clima = await obtenerClima(ciudad.latitude, ciudad.longitude);
         mostrarClimaActual(ciudad, clima.current);
+        mostrarRecomendacionRopa(clima.current);
         mostrarPronostico(clima.daily);
         mostrarMensaje("");
     } catch (error) {
@@ -68,24 +72,21 @@ formulario.addEventListener("submit", async (evento) => {
     }
 });
 
-// Paso 1: convertir el nombre de la ciudad en coordenadas (latitud y longitud)
 async function buscarCiudad(nombre) {
     const url = `${URL_GEOCODING}?name=${encodeURIComponent(nombre)}&count=1&language=es&format=json`;
     const respuesta = await fetch(url);
     if (!respuesta.ok) throw new Error("Error en la API de geocoding");
 
     const datos = await respuesta.json();
-    // Si no hay coincidencias, la API no devuelve "results"
     return datos.results ? datos.results[0] : null;
 }
 
-// Paso 2: pedir el clima actual y el pronóstico para esas coordenadas
 async function obtenerClima(latitud, longitud) {
     const parametros = new URLSearchParams({
         latitude: latitud,
         longitude: longitud,
-        current: "temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code",
-        daily: "weather_code,temperature_2m_max,temperature_2m_min",
+        current: "temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code,is_day",
+        daily: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max",
         timezone: "auto",
         forecast_days: 6,
     });
@@ -100,7 +101,6 @@ function mostrarClimaActual(ciudad, actual) {
     const clima = traducirCodigo(actual.weather_code);
 
     document.getElementById("ciudad").textContent = ciudad.name;
-    // admin1 es la provincia/estado (puede no venir)
     document.getElementById("pais").textContent = [ciudad.admin1, ciudad.country]
         .filter(Boolean)
         .join(", ");
@@ -114,23 +114,102 @@ function mostrarClimaActual(ciudad, actual) {
     tarjetaActual.hidden = false;
 }
 
+// Lógica de recomendación para colgar la ropa
+function evaluarSecadoRopa(actual) {
+    const humedad = actual.relative_humidity_2m;
+    const viento = actual.wind_speed_10m;
+    const codigoClima = actual.weather_code;
+
+    // Códigos de lluvia, llovizna, nieve o tormenta (>= 51)
+    const hayPrecipitacion = codigoClima >= 51;
+
+    if (hayPrecipitacion) {
+        return {
+            clase: "malo",
+            estado: "No recomendado 🌧️",
+            motivo: "Hay precipitaciones en curso o inminentes. Secá la ropa adentro.",
+        };
+    }
+
+    // is_day vale 1 de día y 0 de noche
+    if (actual.is_day === 0) {
+        return {
+            clase: "moderado",
+            estado: "Es de noche 🌙",
+            motivo: "Sin sol la ropa casi no se seca y junta humedad. Esperá a mañana o revisá el pronóstico de abajo.",
+        };
+    }
+
+    if (humedad >= 80) {
+        return {
+            clase: "malo",
+            estado: "No recomendado ❌",
+            motivo: `La humedad es muy alta (${humedad}%). El secado será casi nulo y la ropa puede quedar con feo olor.`,
+        };
+    }
+
+    if (humedad >= 70) {
+        if (viento >= 15) {
+            return {
+                clase: "moderado",
+                estado: "Favorable con reparos ⚠️",
+                motivo: `Humedad alta (${humedad}%), pero el viento (${Math.round(viento)} km/h) ayuda al secado. Ideal solo para prendas finas.`,
+            };
+        }
+        return {
+            clase: "malo",
+            estado: "Poco favorable ⏳",
+            motivo: `Humedad de ${humedad}% y poco viento. Las prendas gruesas tardarán demasiado en secar.`,
+        };
+    }
+
+    // Humedad menor al 70%
+    if (viento >= 10) {
+        return {
+            clase: "optimo",
+            estado: "¡Momento ideal! 🧺✨",
+            motivo: `Baja humedad (${humedad}%) y buena brisa (${Math.round(viento)} km/h). La ropa se secará rápido.`,
+        };
+    }
+
+    return {
+        clase: "optimo",
+        estado: "Condiciones buenas 👍",
+        motivo: `Humedad favorable (${humedad}%). Con el correr de las horas secará bien.`,
+    };
+}
+
+function mostrarRecomendacionRopa(actual) {
+    const recomendacion = evaluarSecadoRopa(actual);
+
+    tarjetaRopa.className = `tarjeta tarjeta-ropa ${recomendacion.clase}`;
+    ropaEstado.textContent = recomendacion.estado;
+    ropaMotivo.textContent = recomendacion.motivo;
+
+    tarjetaRopa.hidden = false;
+}
+
 function mostrarPronostico(diario) {
     listaPronostico.innerHTML = "";
 
-    // El índice 0 es hoy, así que mostramos desde el 1 (los próximos 5 días)
     for (let i = 1; i < diario.time.length; i++) {
         const clima = traducirCodigo(diario.weather_code[i]);
-        // Se agrega "T00:00" para que la fecha se tome en hora local y no en UTC
         const fecha = new Date(`${diario.time[i]}T00:00`);
         const nombreDia = fecha.toLocaleDateString("es-AR", { weekday: "long" });
         const maxima = Math.round(diario.temperature_2m_max[i]);
         const minima = Math.round(diario.temperature_2m_min[i]);
+
+        // Evaluación de ropa para ese día
+        const probLluvia = diario.precipitation_probability_max ? diario.precipitation_probability_max[i] : 0;
+        const vientoMax = diario.wind_speed_10m_max ? diario.wind_speed_10m_max[i] : 0;
+        const ropaDia = evaluarDiaSecado(diario.weather_code[i], probLluvia, vientoMax);
 
         const item = document.createElement("li");
         item.className = "dia";
         item.innerHTML = `
             <span class="dia-nombre">${nombreDia}</span>
             <span class="dia-icono" title="${clima.descripcion}">${clima.icono}</span>
+            <span class="dia-ropa" title="${ropaDia.texto}">${ropaDia.icono}</span>
             <span class="dia-temps">${maxima}° / ${minima}°</span>
         `;
         listaPronostico.appendChild(item);
@@ -149,5 +228,25 @@ function mostrarMensaje(texto) {
 
 function ocultarTarjetas() {
     tarjetaActual.hidden = true;
+    tarjetaRopa.hidden = true;
     tarjetaPronostico.hidden = true;
+}
+
+// Evalúa el día completo para el pronóstico extendido
+function evaluarDiaSecado(codigoClima, probLluvia, vientoMax) {
+    // Si hay lluvia prevista o el código es de mal tiempo
+    if (codigoClima >= 51 || probLluvia > 35) {
+        return { icono: "❌", texto: "No colgar: riesgo de lluvia" };
+    }
+
+    // Días despejados o con poco sol pero buen viento
+    if (codigoClima <= 2) { // 0, 1, 2 son despejado / algo nublado
+        return { icono: "🧺✨", texto: "Ideal para colgar: sol y buen tiempo" };
+    }
+
+    if (vientoMax >= 15) {
+        return { icono: "🧺", texto: "Aceptable: nublado pero con viento" };
+    }
+
+    return { icono: "⚠️", texto: "Regular: nublado y poco viento (secado lento)" };
 }

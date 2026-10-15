@@ -179,3 +179,57 @@ footer {
 footer a {
     color: #ffffff;
 }
+
+/* Tarjeta Colgar Ropa */
+.tarjeta-ropa {
+    border-left: 6px solid #9ca3af;
+    transition: all 0.3s ease;
+}
+
+.tarjeta-ropa.optimo {
+    border-left-color: #10b981;
+    background-color: #f0fdf4;
+}
+
+.tarjeta-ropa.moderado {
+    border-left-color: #f59e0b;
+    background-color: #fffbeb;
+}
+
+.tarjeta-ropa.malo {
+    border-left-color: #ef4444;
+    background-color: #fef2f2;
+}
+
+.ropa-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 8px;
+}
+
+.ropa-icono {
+    font-size: 2.2rem;
+}
+
+.ropa-estado {
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.optimo .ropa-estado { color: #047857; }
+.moderado .ropa-estado { color: #b45309; }
+.malo .ropa-estado { color: #b91c1c; }
+
+.ropa-motivo {
+    font-size: 0.95rem;
+    color: #4b5563;
+    line-height: 1.4;
+}
+
+.dia-ropa {
+    font-size: 1.25rem;
+    cursor: help;
+    text-align: center;
+    width: 40px;
+}
