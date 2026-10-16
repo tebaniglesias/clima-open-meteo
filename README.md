@@ -9,6 +9,7 @@ Proyecto realizado para el **Trabajo Práctico N° 1 – Git y Docker**.
 - Búsqueda de ciudades por nombre (por ejemplo: "Buenos Aires", "Córdoba", "Madrid").
 - Clima actual: temperatura, sensación térmica, humedad, velocidad del viento y estado del cielo.
 - Recomendación para **colgar la ropa**: indica si conviene hacerlo en este momento según la lluvia, la humedad, el viento y si es de día o de noche.
+- **Detalle por hora**: temperatura, estado del cielo y probabilidad de lluvia de las próximas 12 horas.
 - Pronóstico de los próximos 5 días con temperaturas máxima y mínima, y un ícono que indica si ese día conviene colgar la ropa (pasando el mouse se ve el motivo).
 - Mensajes de carga y de error (ciudad no encontrada o falla de conexión).
 - Diseño adaptable a pantallas de celular.
@@ -111,7 +112,7 @@ CMD ["nginx", "-g", "daemon off;"]
 
 1. El usuario escribe el nombre de una ciudad y presiona **Buscar**.
 2. Se consulta la **API de geocoding** de Open-Meteo para obtener la latitud y la longitud de la ciudad.
-3. Con esas coordenadas se consulta la **API de pronóstico**, que devuelve el clima actual y el de los próximos días.
+3. Con esas coordenadas se consulta la **API de pronóstico**, que devuelve el clima actual, el de cada una de las próximas 12 horas y el de los próximos días.
 4. La API indica el estado del cielo con códigos numéricos (estándar WMO). La aplicación los traduce a una descripción y un ícono, por ejemplo `63` → "Lluvia" 🌧️.
 5. Con esos datos se arma la recomendación para colgar la ropa:
    - **Ahora:** no se recomienda si llueve, si es de noche o si la humedad es del 80% o más. Entre 70% y 80% depende del viento. Por debajo del 70% las condiciones son buenas, e ideales si además hay viento.

@@ -42,8 +42,13 @@ const tarjetaActual = document.getElementById("clima-actual");
 const tarjetaRopa = document.getElementById("tarjeta-ropa");
 const ropaEstado = document.getElementById("ropa-estado");
 const ropaMotivo = document.getElementById("ropa-motivo");
+const tarjetaHoras = document.getElementById("tarjeta-horas");
+const listaHoras = document.getElementById("lista-horas");
 const tarjetaPronostico = document.getElementById("tarjeta-pronostico");
 const listaPronostico = document.getElementById("pronostico");
+
+// Cantidad de horas que se muestran en el detalle por hora
+const HORAS_A_MOSTRAR = 12;
 
 formulario.addEventListener("submit", async (evento) => {
     evento.preventDefault();
@@ -64,6 +69,9 @@ formulario.addEventListener("submit", async (evento) => {
         const clima = await obtenerClima(ciudad.latitude, ciudad.longitude);
         mostrarClimaActual(ciudad, clima.current);
         mostrarRecomendacionRopa(clima.current);
+
+        mostrarHoras(clima.hourly);
+
         mostrarPronostico(clima.daily);
         mostrarMensaje("");
     } catch (error) {
@@ -87,8 +95,11 @@ async function obtenerClima(latitud, longitud) {
         longitude: longitud,
         current: "temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code,is_day",
         daily: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max",
+        hourly: "temperature_2m,precipitation_probability,weather_code,is_day",
         timezone: "auto",
         forecast_days: 6,
+        // Las horas empiezan desde la hora actual de la ciudad consultada
+        forecast_hours: HORAS_A_MOSTRAR,
     });
 
     const respuesta = await fetch(`${URL_CLIMA}?${parametros}`);
@@ -189,6 +200,43 @@ function mostrarRecomendacionRopa(actual) {
     tarjetaRopa.hidden = false;
 }
 
+// ---------- Detalle por hora ----------
+
+// La API devuelve un arreglo por cada dato (hourly.time, hourly.temperature_2m, ...)
+// y el elemento i de cada arreglo corresponde a la misma hora.
+function mostrarHoras(hourly) {
+    listaHoras.innerHTML = "";
+
+    for (let i = 0; i < hourly.time.length; i++) {
+        const codigo = hourly.weather_code[i];
+        const clima = traducirCodigo(codigo);
+        // De noche, el sol se reemplaza por la luna
+        const icono = hourly.is_day[i] === 0 && codigo <= 1 ? "🌙" : clima.icono;
+        // La primera hora que devuelve la API es la actual
+        const etiqueta = i === 0 ? "Ahora" : `${obtenerHora(hourly.time[i])} hs`;
+        const temperatura = Math.round(hourly.temperature_2m[i]);
+        const probLluvia = hourly.precipitation_probability[i] ?? 0;
+
+        const item = document.createElement("li");
+        item.className = "hora";
+        item.title = clima.descripcion;
+        item.innerHTML = `
+            <span class="hora-etiqueta">${etiqueta}</span>
+            <span class="hora-icono">${icono}</span>
+            <span class="hora-temp">${temperatura}°</span>
+            <span class="hora-lluvia">💧 ${probLluvia}%</span>
+        `;
+        listaHoras.appendChild(item);
+    }
+
+    tarjetaHoras.hidden = false;
+}
+
+// "2026-10-16T14:00" -> 14
+function obtenerHora(fechaHora) {
+    return Number(fechaHora.slice(11, 13));
+}
+
 function mostrarPronostico(diario) {
     listaPronostico.innerHTML = "";
 
@@ -229,6 +277,7 @@ function mostrarMensaje(texto) {
 function ocultarTarjetas() {
     tarjetaActual.hidden = true;
     tarjetaRopa.hidden = true;
+    tarjetaHoras.hidden = true;
     tarjetaPronostico.hidden = true;
 }
 
