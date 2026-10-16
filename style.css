@@ -233,3 +233,40 @@ footer a {
     text-align: center;
     width: 40px;
 }
+/* Detalle por hora */
+.lista-horas {
+    list-style: none;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto; /* scroll horizontal si no entran todas las horas */
+    padding-bottom: 8px;
+}
+
+.hora {
+    flex: 0 0 64px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 4px;
+    border-radius: 12px;
+    background-color: #f3f4f6;
+}
+
+.hora-etiqueta {
+    font-size: 0.8rem;
+    color: #6b7280;
+}
+
+.hora-icono {
+    font-size: 1.5rem;
+}
+
+.hora-temp {
+    font-weight: 700;
+}
+
+.hora-lluvia {
+    font-size: 0.75rem;
+    color: #2563eb;
+}
